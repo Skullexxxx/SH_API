@@ -8,7 +8,7 @@ class Base(DeclarativeBase):
 
 
 
-class User(Base):
+class UserSchema(Base):
     __tablename__ = "users"
     id: Mapped[int] = mapped_column(primary_key=True)
     login: Mapped[str] = mapped_column(String(30), unique=True)
