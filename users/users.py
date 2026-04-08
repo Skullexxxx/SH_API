@@ -33,7 +33,7 @@ async def register(user: UserRegisterShcems, db: AsyncSession = Depends(get_db))
     db.add(new_user)
     try:
         await db.commit()
-        await {"message": "User created successfully!"}
+        return {"message": "User created successfully!"}
     except IntegrityError:
         await db.rollback()
         raise HTTPException(400, "User already exists")
