@@ -11,8 +11,9 @@ from pydantic import BaseModel, EmailStr
 from data.models import User
 from data.cre_eng_n_sess import get_db
 
+from users.auth import security
 
-class UserRegisterShcems(BaseModel):
+class UserRegisterSchema(BaseModel):
     login: str
     password: str
     email: EmailStr
@@ -25,7 +26,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 
 @router.post("/register")
-async def register(user: UserRegisterShcems, db: AsyncSession = Depends(get_db)):
+async def register(user: UserRegisterSchema, db: AsyncSession = Depends(get_db)):
     hashed_password =  bcrypt.hashpw(user.password.encode(), bcrypt.gensalt())
 
     new_user = User(login=user.login, hash_password=hashed_password, email=user.email)
@@ -55,4 +56,5 @@ async def login(user: UserLoginSchema, db: AsyncSession = Depends(get_db)):
     if not bcrypt.checkpw(user.password.encode(), hashed_password):
         raise HTTPException(status_code=400, detail="Incorrect email or password")
 
-    return {"message": "User logged in!"}
+    token = security.create_access_token(str(db_user.id))
+    return {"access_token": token, "token_type": "bearer"}
