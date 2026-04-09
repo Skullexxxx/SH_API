@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+"""Auth Settings"""
+
 config = AuthXConfig()
 
 config.JWT_SECRET_KEY = os.getenv('SECRET_KEY')
