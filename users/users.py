@@ -1,5 +1,5 @@
 from fastapi import (APIRouter, Depends,
-                     HTTPException, Response,)
+                     Response,)
 
 import bcrypt
 
@@ -13,6 +13,8 @@ from data.models import User
 from data.cre_eng_n_sess import get_db
 
 from users.auth import security, config
+
+from hand_err import error_response
 
 class UserRegisterSchema(BaseModel):
     login: str
@@ -44,7 +46,9 @@ async def register(user: UserRegisterSchema, db: AsyncSession = Depends(get_db))
         return {"message": "User created successfully!"}
     except IntegrityError:
         await db.rollback()
-        raise HTTPException(400, "User already exists")
+        return await error_response(code="DATA_1",
+                              message="User already exists!",
+                              status_code=400)
 
 
 
@@ -66,12 +70,17 @@ async def login(user: UserLoginSchema,
     db_user = result.scalars().first()
 
     if not db_user:
-        raise HTTPException(status_code=400, detail="Incorrect email or password")
+        return await error_response(code="DATA_2",
+                              message="Incorrect email or password",
+                              status_code=400)
+
 
     hashed_password = db_user.hash_password
 
     if not bcrypt.checkpw(user.password.encode(), hashed_password):
-        raise HTTPException(status_code=400, detail="Incorrect email or password")
+        return await error_response(code="DATA_2",
+                              message="Incorrect email or password",
+                              status_code=400)
 
     token = security.create_access_token(str(db_user.id))
     response.set_cookie(config.JWT_ACCESS_COOKIE_NAME, token)
