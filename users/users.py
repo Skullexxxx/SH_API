@@ -1,5 +1,5 @@
 from fastapi import (APIRouter, Depends,
-                     Response,)
+                     Response, Request)
 
 import bcrypt
 
@@ -9,10 +9,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from pydantic import BaseModel, EmailStr
 
+from users.security import create_access_token
+
 from data.models import User
 from data.cre_eng_n_sess import get_db
 
-from users.auth import security, config
+
 
 from hand_err import error_response
 
@@ -82,12 +84,6 @@ async def login(user: UserLoginSchema,
                               message="Incorrect email or password",
                               status_code=400)
 
-    token = security.create_access_token(str(db_user.id))
-    response.set_cookie(config.JWT_ACCESS_COOKIE_NAME, token)
-    return {"access_token": token, "token_type": "bearer"}
-
-
-@router.get("/protected", dependencies=[Depends(security.access_token_required)] )
-async def protected():
-
-    return {"message": "Hello World"}
+    access_token = create_access_token(data={"sub": db_user.email})
+    response.set_cookie()
+    return {"access_token": access_token, "token_type": "bearer"}

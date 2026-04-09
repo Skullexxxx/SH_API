@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 
 
 from users.users import router as user_router
@@ -20,8 +20,8 @@ async def startup():
         await conn.run_sync(Base.metadata.create_all)
 
 @app.exception_handler(MissingTokenError)
-async def missing_token_handler(request, exc):
-    return error_response(
+async def missing_token_handler(request:Request, exc):
+    return await error_response(
         code="AUTH_001",
         message="Not authenticated",
         status_code=401
